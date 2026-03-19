@@ -20,7 +20,7 @@ app.listen(PORT, () => console.log(`🚀 JᴀʀᴠᎥຮ V6.0 Quant Algo listeni
 // ==========================================
 // ⚙️ CONFIGURATION
 // ==========================================
-const TELEGRAM_BOT_TOKEN = "8155932977:AAHTuD_UL8UEpGzK6sZg1gQK0g2Xh6TOsvc"; 
+const TELEGRAM_BOT_TOKEN = "8155932977:AAGaXmv9U3pS9uovGV18pjOggB3VhLrBsjE"; 
 const TARGET_CHATS = ["1669843747", "-1002613316641"];
 
 let lastUpdateId = 0;
@@ -364,9 +364,13 @@ function cooldownGate(){
     return { blocked:false };
 }
 
-function shockTrap(list){
+function shockTrap(sizesFull){
 
-    let sizes = list.slice(1,6).map(i => Number(i.number) <= 4 ? 'S' : 'B');
+    if(sizesFull.length < 6){
+        return { trapped:false };
+    }
+
+    let sizes = sizesFull.slice(0,6);
 
     let last = sizes[0];
     let prevStreak = 1;
@@ -395,9 +399,13 @@ function shockTrap(list){
     return { trapped:false };
 }
 
-function liquidityTrap(list){
+function liquidityTrap(sizesFull){
 
-    let sizes = list.slice(1,8).map(i => Number(i.number) <= 4 ? 'S' : 'B');
+    if(sizesFull.length < 6){
+        return { trapped:false };
+    }
+
+    let sizes = sizesFull.slice(0,8);
 
     const pattern = sizes.slice(0,5).join('');
     const prev = sizes[5];
@@ -459,21 +467,21 @@ function getConfidence(patternName, patternLength, regime, gravityAligned){
     return Math.max(40, Math.min(95, score));
 }
 
-function regimeShield(list){
+function regimeShield(sizesFull){
 
-    let sizes = list.slice(1,13).map(i => Number(i.number) <= 4 ? 'S' : 'B');
+    let sizes = sizesFull.slice(0,13);
 
     // -------- FLIP DENSITY --------
     let flips = 0;
-    for(let i=0;i<10;i++){
-        if(sizes[i] !== sizes[i+1]) flips++;
-    }
+    for(let i = 0; i < sizes.length - 1; i++){
+    if(sizes[i] !== sizes[i+1]) flips++;
+}
 
     // -------- ALT DETECTION --------
     let altCount = 0;
-    for(let i=0;i<8;i++){
-        if(sizes[i] !== sizes[i+1] && sizes[i+1] !== sizes[i+2]) altCount++;
-    }
+for(let i = 0; i < sizes.length - 2; i++){
+    if(sizes[i] !== sizes[i+1] && sizes[i+1] !== sizes[i+2]) altCount++;
+}
 
     // -------- MOMENTUM CHECK --------
     let streak = 1;
@@ -519,10 +527,10 @@ function survivalReset(regime, confidence){
     return true;
 }
 
-    if(confidence < 55 && state.currentLevel >= 1){
-        state.currentLevel = 0;
-        return true;
-    }
+    if(confidence < 50 && state.currentLevel >= 2){
+    state.currentLevel = 1; // reduce risk instead of reset
+    return true;
+}
 
     return false;
 }
@@ -728,15 +736,15 @@ function patternStrengthEngine(patternName, sizes){
     return score;
 }
 
-function marketMakerTrap(list){
+function marketMakerTrap(sizesFull){
 
-    let sizes = list.slice(1,10).map(i => Number(i.number) <= 4 ? 'S' : 'B');
+    let sizes = sizesFull.slice(0,10);
 
     let flips = 0;
 
-    for(let i=0;i<8;i++){
-        if(sizes[i] !== sizes[i+1]) flips++;
-    }
+    for(let i = 0; i < sizes.length - 1; i++){
+    if(sizes[i] !== sizes[i+1]) flips++;
+}
 
     if(flips >= 9){
         return { trapped:true, reason:"Market Maker Flip Storm" };
@@ -745,9 +753,9 @@ function marketMakerTrap(list){
     return { trapped:false };
 }
 
-function flowPressure(list){
+function flowPressure(sizesFull){
 
-    let sizes = list.slice(1,10).map(i => Number(i.number) <= 4 ? 'S' : 'B');
+    let sizes = sizesFull.slice(0,10);
 
     let small = 0;
     let big = 0;
@@ -763,9 +771,9 @@ if(big >= 6) return "BUY_PRESSURE";
     return "NEUTRAL";
 }
 
-function elitePressure(list){
+function elitePressure(sizesFull){
 
-    let sizes = list.slice(1,9).map(i => Number(i.number) <= 4 ? 'S' : 'B');
+    let sizes = sizesFull.slice(0,9);
 
     let small = 0;
     let big = 0;
@@ -781,9 +789,9 @@ function elitePressure(list){
     return "NEUTRAL";
 }
 
-function institutionalFlow(list){
+function institutionalFlow(sizesFull){
 
-    let sizes = list.slice(1,21).map(i => Number(i.number) <= 4 ? 'S' : 'B');
+    let sizes = sizesFull.slice(0,21);
 
     let small = 0;
     let big = 0;
@@ -801,9 +809,9 @@ function institutionalFlow(list){
     return "BALANCED";
 }
 
-function blackSwanDetector(list){
+function blackSwanDetector(sizesFull){
 
-    let sizes = list.slice(1,11).map(i => Number(i.number) <= 4 ? 'S' : 'B');
+    let sizes = sizesFull.slice(0,11);
 
     let small = 0;
     let big = 0;
@@ -821,15 +829,15 @@ function blackSwanDetector(list){
     return "NORMAL";
 }
 
-function entropyFilter(list){
+function entropyFilter(sizesFull){
 
-    let sizes = list.slice(1,11).map(i => Number(i.number) <= 4 ? 'S' : 'B');
+    let sizes = sizesFull.slice(0,11);
 
     let flips = 0;
 
-    for(let i=0;i<9;i++){
-        if(sizes[i] !== sizes[i+1]) flips++;
-    }
+    for(let i = 0; i < sizes.length - 1; i++){
+    if(sizes[i] !== sizes[i+1]) flips++;
+}
 
     let small = sizes.filter(s=>s==='S').length;
     let big = sizes.filter(s=>s==='B').length;
@@ -851,9 +859,35 @@ function entropyFilter(list){
 // 📈 SMART 11-PATTERN ALGORITHM (V6.0 DEEP SCAN)
 // ==========================================
 
-function analyzeTrendsV2(list){
+function analyzeTrendsV2(sizesFull){
 
-    let sizes = list.slice(1,7).map(i => Number(i.number) <= 4 ? 'S' : 'B');
+if(sizesFull.length < 6){
+    return {
+        action:"WAIT",
+        regime:"NO_DATA",
+        confidence:0,
+        reason:"Insufficient Data"
+    };
+}
+
+    let sizes = sizesFull.slice(0,6);
+    
+    // 🚫 OVEREXTENSION BLOCK (ANTI TREND TRAP)
+let sameCount = 1;
+
+for(let i=1;i<6;i++){
+    if(sizes[i] === sizes[0]) sameCount++;
+    else break;
+}
+
+if(sameCount >= 5){
+    return {
+        action:"WAIT",
+        regime:"OVEREXTENDED",
+        confidence:0,
+        reason:"Trend Exhausted (5 streak)"
+    };
+}
 
     const last5 = sizes.slice(0,5).join('');
 
@@ -872,15 +906,6 @@ else if(last5 === "BBBSS" || last5 === "BBSS" || last5 === "BSS"){
     pattern = "BBBSS";
 }
 
-// 🔥 CONTINUATION (STRONG TREND)
-else if(last5 === "BBBBB"){
-    decision = "BIG";
-    pattern = "BBBBB";
-}
-else if(last5 === "SSSSS"){
-    decision = "SMALL";
-    pattern = "SSSSS";
-}
 
 // ⚡ MICRO REVERSAL (SAFE ENTRY)
 else if(last5 === "BBBSB"){
@@ -906,35 +931,48 @@ else if(last5 === "SSSBS"){
 
     let confidence = 65;
 
-    // ⚡ MOMENTUM (NO BLOCK)
-    if(decision === "BIG"){
-        if(last !== 'B' && prev !== 'B'){
-            confidence -= 15;
-        }
+// ⚡ MOMENTUM (NO BLOCK)
+if(decision === "BIG"){
+    if(last !== 'B' && prev !== 'B'){
+        confidence -= 15;
     }
+}
 
-    if(decision === "SMALL"){
-        if(last !== 'S' && prev !== 'S'){
-            confidence -= 15;
-        }
+if(decision === "SMALL"){
+    if(last !== 'S' && prev !== 'S'){
+        confidence -= 15;
     }
+}
 
-    // 💧 LIQUIDITY TRAP
-    if(last5 === "BBBBS" || last5 === "SSSSB"){
-        return {
-            action:"WAIT",
-            regime:"LIQUIDITY_TRAP",
-            confidence:0,
-            reason:"Trap Detected"
-        };
-    }
-
+// 💧 LIQUIDITY TRAP
+if(last5 === "BBBBS" || last5 === "SSSSB"){
     return {
-        action: decision,
-        regime:"STABLE",
-        confidence,
-        reason: pattern
+        action:"WAIT",
+        regime:"LIQUIDITY_TRAP",
+        confidence:0,
+        reason:"Trap Detected"
     };
+}
+
+// ==========================
+// 🧠 AI BOOST ENGINES HERE
+// ==========================
+confidence += quantumPatternEngine(pattern, sizes);
+confidence += patternStrengthEngine(pattern, sizes);
+confidence = patternBooster(pattern, confidence);
+confidence = evolvePattern(pattern, confidence);
+
+// 🎯 FINAL CLAMP (VERY IMPORTANT)
+confidence = Math.max(40, Math.min(95, confidence));
+
+// ==========================
+
+return {
+    action: decision,
+    regime:"STABLE",
+    confidence,
+    reason: pattern
+};
 }
 
 
@@ -963,7 +1001,8 @@ async function tick() {
 
         if(!data.data || !data.data.list) throw new Error("Empty API List"); 
         
-        const list = data.data.list; 
+        const list = data.data.list;
+        const sizesFull = list.map(i => Number(i.number) <= 4 ? 'S' : 'B');
         const latestIssue = list[0].issueNumber; 
         const targetIssue = (BigInt(latestIssue) + 1n).toString(); 
         
@@ -1087,9 +1126,64 @@ Consider disabling this pattern.`
 
     if(!state.activePrediction) {
 
-    const signal = analyzeTrendsV2(list);
-    
-   
+    // 🚫 ENTROPY BLOCK
+const entropy = entropyFilter(sizesFull);
+if(entropy.blocked){
+
+    if(state.cooldownLockIssue !== latestIssue){
+        state.cooldownLockIssue = latestIssue;
+
+        await sendTelegram(`🧠 <b>ENTROPY BLOCK</b>\n⚠️ ${entropy.reason}`);
+    }
+
+    state.waitCount++;
+    return;
+}
+
+// ⚡ SHOCK TRAP
+const shock = shockTrap(sizesFull);
+if(shock.trapped){
+
+    if(state.shockLockIssue !== latestIssue){
+        state.shockLockIssue = latestIssue;
+
+        await sendTelegram(`⚡ <b>SHOCK TRAP DETECTED</b>\n🧠 ${shock.reason}`);
+    }
+
+    state.waitCount++;
+    return;
+}
+
+// 💧 LIQUIDITY TRAP
+const liq = liquidityTrap(sizesFull);
+if(liq.trapped){
+
+    if(state.liquidityLockIssue !== latestIssue){
+        state.liquidityLockIssue = latestIssue;
+
+        await sendTelegram(`💧 <b>LIQUIDITY TRAP</b>\n🧠 ${liq.reason}`);
+    }
+
+    state.waitCount++;
+    return;
+}
+
+// 🏦 MARKET MAKER TRAP
+const mm = marketMakerTrap(sizesFull);
+if(mm.trapped){
+
+    if(state.marketMakerLockIssue !== latestIssue){
+        state.marketMakerLockIssue = latestIssue;
+
+        await sendTelegram(`🏦 <b>MARKET MAKER DETECTED</b>\n🧠 ${mm.reason}`);
+    }
+
+    state.waitCount++;
+    return;
+}
+
+// ✅ THEN analyze
+const signal = analyzeTrendsV2(sizesFull);
 
 
 if(signal.action !== "WAIT"){
